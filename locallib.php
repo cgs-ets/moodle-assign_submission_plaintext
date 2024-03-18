@@ -156,14 +156,14 @@ class assign_submission_plaintext extends assign_submission_plugin {
 
         $submissionid = $submission ? $submission->id : 0;
 
-        if (!isset($data->plaintext)) {
-            $data->plaintext = '';
+        if (!isset($data->plaintext_textarea)) {
+            $data->plaintext_textarea = '';
         }
 
         if ($submission) {
             $plaintextsubmission = $this->get_plaintext_submission($submission->id);
             if ($plaintextsubmission) {
-                $data->plaintext = $plaintextsubmission->plaintext;
+                $data->plaintext_textarea = $plaintextsubmission->plaintext;
             }
 
         }
@@ -171,6 +171,33 @@ class assign_submission_plaintext extends assign_submission_plugin {
         $mform->addElement('textarea', 'plaintext_textarea', $this->get_name(), 'wrap="virtual" rows="10" cols="50"');
 
         return true;
+    }
+
+        /**
+     * Return a list of the text fields that can be imported/exported by this plugin
+     *
+     * @return array An array of field names and descriptions. (name=>description, ...)
+     */
+    public function get_editor_fields() {
+        return array('plaintext' => get_string('pluginname', 'assignsubmission_plaintext'));
+    }
+
+    /**
+     * Get the saved text content from the editor
+     *
+     * @param string $name
+     * @param int $submissionid
+     * @return string
+     */
+    public function get_editor_text($name, $submissionid) {
+        if ($name == 'plaintext') {
+            $plaintextsubmission = $this->get_plaintext_submission($submissionid);
+            if ($plaintextsubmission) {
+                return $plaintextsubmission->plaintext;
+            }
+        }
+
+        return '';
     }
 
     /**
