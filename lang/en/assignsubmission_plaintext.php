@@ -45,6 +45,6 @@ $string['wordlimit_help'] = 'If plain text submissions are enabled, this is the 
         'of words that each student will be allowed to submit.';
 $string['wordlimitexceeded'] = 'The word limit for this assignment is {$a->limit} words and you ' .
         'are attempting to submit {$a->count} words. Please review your submission and try again.';
-
+$string['cron_copy_to_plaincomment'] = 'Copy plain text submission to plain comment feedback';
 // Deprecated since Moodle 4.3.
 $string['numwordsforlog'] = 'Submission word count: {$a} words';

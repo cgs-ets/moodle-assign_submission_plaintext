@@ -15,15 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file contains the version information for the plaintext submission plugin
+ * Task schedule configuration for the submission_plaintext plugin.
  *
- * @package    assignsubmission_plaintext
- * @copyright 2024 Michael Vangelovski
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   submission_plaintext
+ * @copyright 2024, Veronica Bermegui
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version   = 2024140800;
-$plugin->requires  = 2018051703;
-$plugin->component = 'assignsubmission_plaintext';
+$tasks = [
+    [
+        'classname' => 'assignsubmission_plaintext\task\cron_copy_to_plaincomment',
+        'blocking' => 0,
+        'minute' => '*',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
+];
