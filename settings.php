@@ -26,3 +26,10 @@ $settings->add(new admin_setting_configcheckbox('assignsubmission_plaintext/defa
                    new lang_string('default', 'assignsubmission_plaintext'),
                    new lang_string('default_help', 'assignsubmission_plaintext'), 0));
 
+$settings->add(new admin_setting_configtext('assignsubmission_plaintext/ptcourseid',
+                   new lang_string('ptcourseid', 'assignsubmission_plaintext'),
+                   new lang_string('ptcourseid_help', 'assignsubmission_plaintext'), 0, PARAM_INT));
+
+$settings->add(new admin_setting_configtext('assignsubmission_plaintext/gcategory',
+                   new lang_string('gcategory', 'assignsubmission_plaintext'),
+                   new lang_string('gcategory_help', 'assignsubmission_plaintext'), 'REPORT',PARAM_TEXT));                
