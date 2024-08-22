@@ -72,7 +72,7 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
     
             } else {
     
-                $this->log("Looking for submissions since last run: $lastrun $config->ptcourseid");
+                $this->log("Looking for submissions since last run: $lastrun");
                 $submissions = $this->get_plaincomment_from_all_courses($lastrun);
             }
             
@@ -98,7 +98,8 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
     private function get_plaincomment_from_particular_course($config, $lastrun){
         global $DB;
 
-        $sql = "SELECT u.id AS userid, sub.id AS submissionid, pt.plaintext, sub.assignment, sub.timemodified, pg.*, assign.name, assign.course, gi.*
+        $sql = "SELECT u.id AS userid, sub.id AS submissionid, pt.plaintext, 
+                sub.assignment, sub.timemodified, pg.*, assign.name, assign.course, gi.*
                 FROM {user}  u 
                 JOIN {assign_submission}  sub ON u.id = sub.userid
                 JOIN {assignsubmission_plaintext} pt ON pt.submission = sub.id
@@ -111,14 +112,15 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
                 AND pg.plugin = :plugin 
                 AND pg.value = :value 
                 AND gcat.fullname = :fullname 
-                AND gcat.courseid = :courseid";
+                AND gcat.courseid = :courseid
+                AND gi.categoryid = gcat.id";
 
         $params = ['status'=> 'submitted',
-        'timemodified' => $lastrun,
-        'plugin' => 'plaincomment',
-        'value' => 1,
-        'fullname' => $config->gcategory,
-        'courseid' => $config->ptcourseid];
+                    'timemodified' => $lastrun,
+                    'plugin' => 'plaincomment',
+                    'value' => 1,
+                    'fullname' => $config->gcategory,
+                    'courseid' => $config->ptcourseid];
 
         $submissions = $DB->get_records_sql($sql, $params);
         
@@ -145,9 +147,9 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
                 AND  pg.value = :value";
 
         $params = ['status'=> 'submitted',
-        'timemodified' => $lastrun,
-        'plugin' => 'plaincomment',
-        'value' => 1];
+                    'timemodified' => $lastrun,
+                    'plugin' => 'plaincomment',
+                    'value' => 1];
 
         $submissions = $DB->get_records_sql($sql, $params);
 
@@ -160,23 +162,29 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
     private function process_plaintextsubmission_to_plaintextcomment($submissions) {
 
         foreach($submissions as $submission) {
+
             $this->log("Processing submission $submission->submissionid for user $submission->userid", 1);
+
             // Check if its an update or an insert
             // Insert record in mdl_assign_grades 
-
             $grade = $this->update_assign_grades($submission->userid, $submission->assignment);
+            $feedback = $this->is_in_assignfeedback_plaincomment($grade);
 
             // No grade we have to insert everything
             if ($grade == -1) {
                
                 $rid = $this->insert_record($submission);
+                $this->insert_record_in_assignfeedback_plaincomment($rid, $submission);
 
-            } else { // update
+            } elseif(!$feedback) { // Just insert in the plaincommment table
 
-                $rid = $this->update_record($submission, $grade);
+                $this->insert_record_in_assignfeedback_plaincomment($submission, $grade);
+
+            } else { // Update the plaincomment
+
+                $rid = $this->update_record_in_assignfeedback_plaincomment($submission, $grade);
             }
 
-            $this->log("Record inserted in assignfeedback_plaincomment, ID: $rid  ", 1);
         }
         
     }
@@ -197,6 +205,7 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
         $result = $DB->get_record_sql($sql, $params);
         
         if(isset($result->id)) {
+            
             $r = new stdClass();
             $r->id = $result->id;
             $r->timemodified = time();
@@ -208,6 +217,19 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
         }
 
         return -1;
+    }
+
+    /**
+     * If the submission was created before the assignment was given the category
+     * it will not exist in the assignfeedback_plaincomment table. 
+     */
+    private function is_in_assignfeedback_plaincomment($grade){
+        global $DB;
+        
+        $sql = 'SELECT * FROM {assignfeedback_plaincomment} WHERE grade = :grade';
+        $feedback = $DB->get_record_sql($sql, ['grade' => $grade]);
+
+        return $feedback;
     }
 
     /**
@@ -226,6 +248,11 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
        
         $this->log("Record inserted in assign_grades, ID: $grade  ", 1);
 
+    }
+
+    private function insert_record_in_assignfeedback_plaincomment($submission, $grade){
+        global $DB;
+
         // Insert in assignfeedback_plaincomment;
 
         $data = new stdClass();
@@ -235,15 +262,14 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
         $rid = $DB->insert_record('assignfeedback_plaincomment', $data, true);
 
         $this->log("Record inserted in assignfeedback_plaincomment, ID: $rid  ", 1);
-
-        return $rid;
     }
 
     /**
      * Update record in assignfeedback_plaincomment
      */
-    private function update_record($submission, $grade) {
+    private function update_record_in_assignfeedback_plaincomment($submission, $grade) {
         global $DB;
+
         $this->log("Updating assignfeedback_plaincomment, submission ID: $submission->id. Grade ID $grade");
 
         $sql = 'SELECT * FROM {assignfeedback_plaincomment} WHERE grade = :grade';
