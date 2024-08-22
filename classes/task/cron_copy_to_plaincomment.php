@@ -63,7 +63,7 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
             // Get submissions with submission type plaintext
             // that have been updated since the last time the job ran.
             // and that the feedback type is plaincomment
-            $config = get_config('assignsubmission_plaintext ');
+            $config = get_config('assignsubmission_plaintext');
     
             if ( $config->ptcourseid != 0 ) {
     
