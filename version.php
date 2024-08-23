@@ -24,6 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2024140800;
+$plugin->version   = 2024230800;
 $plugin->requires  = 2018051703;
 $plugin->component = 'assignsubmission_plaintext';

@@ -81,7 +81,7 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
             $this->log('Finishing cron_copy_to_plaincomment task');
 
        
-        return true;
+        return 1;
     }
 
     public function can_run(): bool {
@@ -174,7 +174,7 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
             if ($grade == -1) {
                
                 $rid = $this->insert_record($submission);
-                $this->insert_record_in_assignfeedback_plaincomment($rid, $submission);
+                $this->insert_record_in_assignfeedback_plaincomment($submission, $rid);
 
             } elseif(!$feedback) { // Just insert in the plaincommment table
 
