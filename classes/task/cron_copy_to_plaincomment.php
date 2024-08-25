@@ -168,15 +168,14 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
             // Check if its an update or an insert
             // Insert record in mdl_assign_grades 
             $grade = $this->update_assign_grades($submission->userid, $submission->assignment);
-            $feedback = $this->is_in_assignfeedback_plaincomment($grade);
-
+          
             // No grade we have to insert everything
             if ($grade == -1) {
                
                 $rid = $this->insert_record($submission);
                 $this->insert_record_in_assignfeedback_plaincomment($submission, $rid);
 
-            } elseif(!$feedback) { // Just insert in the plaincommment table
+            } elseif(!$this->is_in_assignfeedback_plaincomment($grade)) { // Just insert in the plaincommment table
 
                 $this->insert_record_in_assignfeedback_plaincomment($submission, $grade);
 
@@ -248,6 +247,8 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
        
         $this->log("Record inserted in assign_grades, ID: $grade  ", 1);
 
+        return $grade;
+
     }
 
     private function insert_record_in_assignfeedback_plaincomment($submission, $grade){
@@ -262,6 +263,8 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
         $rid = $DB->insert_record('assignfeedback_plaincomment', $data, true);
 
         $this->log("Record inserted in assignfeedback_plaincomment, ID: $rid  ", 1);
+        
+        return $rid;
     }
 
     /**
