@@ -196,14 +196,14 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
 
         global $DB;
 
-        $this->log("Updating assign_grades for user ID $userid and Assigment ID: $assignmentid");
-        
         $sql = "SELECT  * FROM {assign_grades} WHERE userid = :userid and assignment = :assignment";
         $params = ['userid' => $userid, 'assignment'=> $assignmentid];
         
         $result = $DB->get_record_sql($sql, $params);
         
         if(isset($result->id)) {
+
+            $this->log("Updating assign_grades for user ID $userid and Assigment ID: $assignmentid");
             
             $r = new stdClass();
             $r->id = $result->id;
@@ -245,7 +245,7 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
 
         $grade = $DB->insert_record('assign_grades',  $dataobject, true);
        
-        $this->log("Record inserted in assign_grades, ID: $grade  ", 1);
+        $this->log("Record inserted in assign_grades. ID: $grade  ", 1);
 
         return $grade;
 
@@ -273,11 +273,9 @@ class cron_copy_to_plaincomment extends \core\task\scheduled_task {
     private function update_record_in_assignfeedback_plaincomment($submission, $grade) {
         global $DB;
 
-        $this->log("Updating assignfeedback_plaincomment, submission ID: $submission->id. Grade ID $grade");
-
         $sql = 'SELECT * FROM {assignfeedback_plaincomment} WHERE grade = :grade';
         $feedback = $DB->get_record_sql($sql, ['grade' => $grade]);
-
+        
         $feedback->plaincomment = $submission->plaintext;
         
         if ($DB->update_record('assignfeedback_plaincomment',$feedback)) {
